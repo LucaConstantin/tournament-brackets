@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+  background-color: #eee;
+  font-family: Tahoma, Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+section {
+  margin: 0 8px;
+}
+
+.header-text {
+    color: white;
+    background: linear-gradient(blue, navy);
+    border: double 5px white;
+    border-radius: 1em;
+    text-align: center;
+    padding: 5px 0;
+    margin-bottom: 20px;
+}
+.header-text h1, .header-text h6 {
+    margin: 0;
+}
+.header-text h1 {
+    font-size: 1.5em;
+}
+
+.tournament-container {
+  width: 100%;
+  border: 2px solid #333;
+  border-radius: 8px;
+  overflow: auto;
+  background-color: white;
+  padding: 10px;
+  box-sizing: border-box;
+  max-height: 90vh;
+}
+
+.tournament {
+    display: flex;
+    flex-direction: row;
+    min-width: max-content;
+}
+.tournament .round {
+  font-size: .75em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 220px;
+  list-style: none;
+  padding: 0;
+}
+.tournament .round .spacer {
+  flex-grow: 2;
+}
+.tournament .round .spacer:first-child,
+.tournament .round .spacer:last-child {
+  flex-grow: 1;
+}
+
+.region {
+    font-size: 1.5em;
+    font-weight:bold;
+}
+.region-right {
+    text-align:right;
+  padding-right: 5px;
+}
+.region-left {
+    text-align:left;
+  padding-left: 5px;
+}
+
+li.game-right {
+  text-align: right;
+  border-left: 1px solid #aaa;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+li.game-left {
+    border-right: 1px solid #aaa;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+li.game-bottom {
+  border-bottom: 1px solid #aaa;
+}
+li.game-top {
+  border: none;
+  border-bottom: 1px solid #aaa;
+}
+li.game-left.spacer {
+    border-right: 1px solid #aaa;
+    min-height: 5px;
+    padding-right:.25em;
+    cursor: default;
+}
+li.game-right.spacer {
+    border-left: 1px solid #aaa;
+    min-height: 5px;
+    padding-left:.25em;
+    text-align: left;
+    cursor: default;
+}
+
+li.game-left:not(.spacer):hover,
+li.game-right:not(.spacer):hover {
+  background-color: #f0f0f0;
+}
+
+li.game-left.empty-slot,
+li.game-right.empty-slot {
+  background-color: #f9f9f9;
+  cursor: default;
+}
+
+li.game-left.empty-slot:hover,
+li.game-right.empty-slot:hover {
+  background-color: #f9f9f9;
+}
+
+.final {
+    text-align: center;
+    padding: 1.5em;
+    border: 1px solid #aaa;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    font-weight:bold;
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    border-radius: 8px;
+}
+.finals .centered {
+    text-align:center;
+    font-weight:bold;
+}
+
+.empty-slot-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-style: italic;
+  font-size: 0.9em;
+  min-height: 40px;
+}
+
+.empty-slot-content.left {
+  justify-content: flex-start;
+  padding-left: 10px;
+}
+
+.empty-slot-content.right {
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+
+.team-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.team-card img {
+  width: 24px;
+  height: 18px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+}
+
+.team-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.team-name {
+  font-weight: bold;
+  font-size: 0.95em;
+  line-height: 1.2;
+}
+
+.robot-name {
+  font-size: 0.75em;
+  color: #666;
+  font-style: italic;
+  line-height: 1.1;
+}
+
+.robot-code {
+  font-size: 0.7em;
+  color: #999;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+}
+
+.seed-number {
+  font-size: 0.85em;
+  font-weight: bold;
+  min-width: 18px;
+  color: #333;
+}
+
+.winner {
+  background-color: #e8f5e9;
+}
+
+.champion-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.champion-card img {
+  width: 40px;
+  height: 30px;
+}
+
+.champion-card .team-name {
+  font-size: 1.2em;
+}
+
+.highlight-path {
+  background-color: #c8e6c9 !important;
+  animation: pulseGreen 0.5s ease-in-out;
+}
+
+@keyframes pulseGreen {
+  0%, 100% { background-color: #c8e6c9; }
+  50% { background-color: #a5d6a7; }
+}
+
+.stats-tooltip {
+  position: fixed;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  z-index: 1000;
+  min-width: 280px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border: 2px solid #4a90e2;
+}
+
+.stats-tooltip.show {
+  opacity: 1;
+}
+
+.stats-tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(255,255,255,0.3);
+}
+
+.stats-tooltip-header img {
+  width: 32px;
+  height: 24px;
+  border: 2px solid white;
+  border-radius: 3px;
+}
+
+.stats-tooltip-title {
+  flex: 1;
+}
+
+.stats-tooltip-title .team {
+  font-weight: bold;
+  font-size: 1.1em;
+  display: block;
+}
+
+.stats-tooltip-title .robot {
+  font-size: 0.85em;
+  font-style: italic;
+  opacity: 0.9;
+  display: block;
+}
+
+.stats-tooltip-title .code {
+  font-size: 0.75em;
+  font-family: 'Courier New', monospace;
+  color: #ffd700;
+  display: block;
+  margin-top: 2px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.stat-item {
+  background: rgba(255,255,255,0.1);
+  padding: 8px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.75em;
+  opacity: 0.8;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 1.4em;
+  font-weight: bold;
+  display: block;
+}
+
+.stat-item.points {
+  grid-column: 1 / -1;
+  background: rgba(255,215,0,0.2);
+}
+
+.stat-item.points .stat-value {
+  color: #ffd700;
+  font-size: 1.8em;
+}
+  </style>
+</head>
+<body>
+  <section>
+    <div class="header-text">
+      <h1>🏆 Robot Combat Championship 2024 🏆</h1>
+      <h6>International Tournament Bracket</h6>
+    </div>
+    <div class="tournament-container">
+      <div class='tournament' id="tournament">
+      </div>
+    </div>
+  </section>
+
+  <div id="statsTooltip" class="stats-tooltip"></div>
+
+  <script>
+    const tournamentData = {
+      "regions": {
+        "East": {
+          "side": "left",
+          "initial": [
+            { "seed": 1, "team": "Steel Dragons", "robot": "Inferno", "code": "M001", "country": "jp", "stats": { "points": 285, "wins": 28, "draws": 3, "losses": 2 } },
+            { "seed": 16, "team": "Arctic Wolves", "robot": "Frostbite", "code": "M016", "country": "no", "stats": { "points": 125, "wins": 12, "draws": 5, "losses": 15 } },
+            { "seed": 8, "team": "Thunder Hawks", "robot": "Storm Surge", "code": "M008", "country": "au", "stats": { "points": 198, "wins": 19, "draws": 6, "losses": 8 } },
+            { "seed": 9, "team": "Shadow Panthers", "robot": "Night Stalker", "code": "M009", "country": "br", "stats": { "points": 187, "wins": 18, "draws": 5, "losses": 9 } },
+            { "seed": 5, "team": "Iron Eagles", "robot": "Sky Crusher", "code": "M005", "country": "de", "stats": { "points": 234, "wins": 23, "draws": 4, "losses": 6 } },
+            { "seed": 12, "team": "Cyber Sharks", "robot": "Deep Strike", "code": "M012", "country": "za", "stats": { "points": 156, "wins": 15, "draws": 6, "losses": 11 } },
+            { "seed": 4, "team": "Plasma Vipers", "robot": "Venom", "code": "M004", "country": "fr", "stats": { "points": 267, "wins": 26, "draws": 3, "losses": 4 } },
+            { "seed": 13, "team": "Desert Scorpions", "robot": "Sand Storm", "code": "M013", "country": "eg", "stats": { "points": 143, "wins": 14, "draws": 5, "losses": 13 } }
+          ],
+          "round1": ["Steel Dragons", "Thunder Hawks", "Iron Eagles", "Plasma Vipers"],
+          "round2": ["Thunder Hawks", "Plasma Vipers"],
+          "round3": null
+        },
+        "West": {
+          "side": "left",
+          "initial": [
+            { "seed": 6, "team": "Neon Ninjas", "robot": "Silent Death", "code": "M006", "country": "kr", "stats": { "points": 221, "wins": 22, "draws": 5, "losses": 6 } },
+            { "seed": 11, "team": "Crimson Titans", "robot": "Blood Moon", "code": "M011", "country": "ru", "stats": { "points": 165, "wins": 16, "draws": 5, "losses": 11 } },
+            { "seed": 3, "team": "Atomic Warriors", "robot": "Meltdown", "code": "M003", "country": "gb", "stats": { "points": 276, "wins": 27, "draws": 3, "losses": 3 } },
+            { "seed": 14, "team": "Solar Flares", "robot": "Sun Burst", "code": "M014", "country": "mx", "stats": { "points": 134, "wins": 13, "draws": 5, "losses": 14 } },
+            { "seed": 7, "team": "Gravity Legends", "robot": "Black Hole", "code": "M007", "country": "it", "stats": { "points": 209, "wins": 20, "draws": 6, "losses": 7 } },
+            { "seed": 10, "team": "Voltage Knights", "robot": "Lightning", "code": "M010", "country": "se", "stats": { "points": 176, "wins": 17, "draws": 6, "losses": 10 } },
+            { "seed": 2, "team": "Titan Force", "robot": "Colossus", "code": "M002", "country": "ca", "stats": { "points": 289, "wins": 29, "draws": 2, "losses": 2 } },
+            { "seed": 15, "team": "Pixel Pirates", "robot": "Glitch", "code": "M015", "country": "nl", "stats": { "points": 128, "wins": 12, "draws": 4, "losses": 16 } }
+          ],
+          "round1": ["Neon Ninjas", "Atomic Warriors", "Voltage Knights", "Titan Force"],
+          "round2": null,
+          "round3": null
+        },
+        "Midwest": {
+          "side": "right",
+          "initial": [
+            { "seed": 1, "team": "Quantum Reapers", "robot": "Singularity", "code": "M017", "country": "ch", "stats": { "points": 291, "wins": 29, "draws": 3, "losses": 1 } },
+            { "seed": 16, "team": "Binary Beasts", "robot": "Code Red", "code": "M032", "country": "fi", "stats": { "points": 119, "wins": 11, "draws": 5, "losses": 16 } },
+            { "seed": 8, "team": "Turbo Templars", "robot": "Holy Crusher", "code": "M024", "country": "es", "stats": { "points": 201, "wins": 20, "draws": 5, "losses": 8 } },
+            { "seed": 9, "team": "Neon Samurai", "robot": "Bushido", "code": "M025", "country": "jp", "stats": { "points": 183, "wins": 18, "draws": 6, "losses": 9 } },
+            { "seed": 5, "team": "Cyber Phoenixes", "robot": "Rebirth", "code": "M021", "country": "sg", "stats": { "points": 238, "wins": 23, "draws": 5, "losses": 5 } },
+            { "seed": 12, "team": "Magnetic Mavericks", "robot": "Polarity", "code": "M028", "country": "pl", "stats": { "points": 152, "wins": 15, "draws": 4, "losses": 13 } },
+            { "seed": 4, "team": "Chrome Crusaders", "robot": "Silver Bullet", "code": "M020", "country": "at", "stats": { "points": 265, "wins": 26, "draws": 4, "losses": 3 } },
+            { "seed": 13, "team": "Stealth Hunters", "robot": "Ghost Protocol", "code": "M029", "country": "dk", "stats": { "points": 147, "wins": 14, "draws": 6, "losses": 12 } }
+          ],
+          "round1": null,
+          "round2": null,
+          "round3": null
+        },
+        "South": {
+          "side": "right",
+          "initial": [
+            { "seed": 6, "team": "Laser Spartans", "robot": "Photon Blade", "code": "M022", "country": "gr", "stats": { "points": 218, "wins": 21, "draws": 6, "losses": 6 } },
+            { "seed": 11, "team": "Sonic Falcons", "robot": "Sound Wave", "code": "M027", "country": "ar", "stats": { "points": 169, "wins": 16, "draws": 6, "losses": 11 } },
+            { "seed": 3, "team": "Omega Guardians", "robot": "Last Stand", "code": "M019", "country": "nz", "stats": { "points": 273, "wins": 27, "draws": 4, "losses": 2 } },
+            { "seed": 14, "team": "Blaze Runners", "robot": "Wildfire", "code": "M030", "country": "pt", "stats": { "points": 137, "wins": 13, "draws": 5, "losses": 14 } },
+            { "seed": 7, "team": "Echo Strikers", "robot": "Resonance", "code": "M023", "country": "ie", "stats": { "points": 212, "wins": 21, "draws": 5, "losses": 7 } },
+            { "seed": 10, "team": "Vortex Raiders", "robot": "Cyclone", "code": "M026", "country": "tr", "stats": { "points": 179, "wins": 17, "draws": 7, "losses": 9 } },
+            { "seed": 2, "team": "Mega Destroyers", "robot": "Apocalypse", "code": "M018", "country": "in", "stats": { "points": 295, "wins": 30, "draws": 1, "losses": 2 } },
+            { "seed": 15, "team": "Nano Sentinels", "robot": "Micro Menace", "code": "M031", "country": "be", "stats": { "points": 131, "wins": 12, "draws": 5, "losses": 15 } }
+          ],
+          "round1": null,
+          "round2": null,
+          "round3": null
+        }
+      },
+      "semifinals": {
+        "match1": null,
+        "match2": null
+      },
+      "finals": {
+        "teams": null,
+        "champion": null
+      }
+    };
+
+    function findTeamData(teamName) {
+      if (!teamName) return null;
+      
+      for (let regionName in tournamentData.regions) {
+        const region = tournamentData.regions[regionName];
+        const team = region.initial.find(t => t.team === teamName);
+        if (team) return team;
+      }
+      if (tournamentData.finals.champion && tournamentData.finals.champion.team === teamName) {
+        return tournamentData.finals.champion;
+      }
+      return null;
+    }
+
+    function createTeamCard(teamData, side = 'left', showSeed = true) {
+      if (!teamData) return '';
+      
+      const flag = `<img src="https://flagcdn.com/w40/${teamData.country}.png" alt="${teamData.country}">`;
+      
+      if (side === 'left') {
+        return `
+          <div class="team-card" data-team="${teamData.team}">
+            ${showSeed ? `<span class="seed-number">${teamData.seed}</span>` : ''}
+            ${flag}
+            <div class="team-info">
+              <span class="team-name">${teamData.team}</span>
+              <span class="robot-name">${teamData.robot}</span>
+              <span class="robot-code">${teamData.code}</span>
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="team-card" data-team="${teamData.team}">
+            <div class="team-info" style="text-align: right;">
+              <span class="team-name">${teamData.team}</span>
+              <span class="robot-name">${teamData.robot}</span>
+              <span class="robot-code">${teamData.code}</span>
+            </div>
+            ${flag}
+            ${showSeed ? `<span class="seed-number">${teamData.seed}</span>` : ''}
+          </div>
+        `;
+      }
+    }
+
+    function createEmptySlot(side = 'left') {
+      return `<div class="empty-slot-content ${side}">TBD</div>`;
+    }
+
+    function getTeamPath(teamName) {
+      const path = [];
+      
+      for (let regionName in tournamentData.regions) {
+        const region = tournamentData.regions[regionName];
+        
+        if (region.initial.some(t => t.team === teamName)) {
+          path.push(teamName);
+        }
+        
+        if (region.round1 && region.round1.includes(teamName)) {
+          path.push(`${regionName}-round1-${teamName}`);
+        }
+        
+        if (region.round2 && region.round2.includes(teamName)) {
+          path.push(`${regionName}-round2-${teamName}`);
+        }
+        
+        if (region.round3 && region.round3.includes(teamName)) {
+          path.push(`${regionName}-round3-${teamName}`);
+        }
+      }
+      
+      if (tournamentData.semifinals.match1 && tournamentData.semifinals.match1.teams && tournamentData.semifinals.match1.teams.includes(teamName)) {
+        path.push(`semi1-${teamName}`);
+      }
+      if (tournamentData.semifinals.match2 && tournamentData.semifinals.match2.teams && tournamentData.semifinals.match2.teams.includes(teamName)) {
+        path.push(`semi2-${teamName}`);
+      }
+      
+      if (tournamentData.semifinals.match1 && tournamentData.semifinals.match1.winner === teamName) {
+        path.push(`final-left-${teamName}`);
+      }
+      if (tournamentData.semifinals.match2 && tournamentData.semifinals.match2.winner === teamName) {
+        path.push(`final-right-${teamName}`);
+      }
+      
+      if (tournamentData.finals.champion && tournamentData.finals.champion.team === teamName) {
+        path.push(`champion-${teamName}`);
+      }
+      
+      return path;
+    }
+
+    function highlightPath(teamName) {
+      document.querySelectorAll('.highlight-path').forEach(el => {
+        el.classList.remove('highlight-path');
+      });
+      
+      const path = getTeamPath(teamName);
+      
+      document.querySelectorAll('[data-team]').forEach(card => {
+        if (card.getAttribute('data-team') === teamName) {
+          card.closest('li').classList.add('highlight-path');
+        }
+      });
+    }
+
+    function showTooltip(teamData, x, y) {
+      const tooltip = document.getElementById('statsTooltip');
+      
+      if (!teamData || !teamData.stats) {
+        tooltip.classList.remove('show');
+        return;
+      }
+      
+      const stats = teamData.stats;
+      
+      tooltip.innerHTML = `
+        <div class="stats-tooltip-header">
+          <img src="https://flagcdn.com/w40/${teamData.country}.png" alt="${teamData.country}">
+          <div class="stats-tooltip-title">
+            <span class="team">${teamData.team}</span>
+            <span class="robot">${teamData.robot}</span>
+            <span class="code">${teamData.code}</span>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-item points">
+            <span class="stat-label">Points (P)</span>
+            <span class="stat-value">${stats.points}</span>
+          </div>
+          <div class="stat-item wins">
+            <span class="stat-label">Wins (W)</span>
+            <span class="stat-value">${stats.wins}</span>
+          </div>
+          <div class="stat-item draws">
+            <span class="stat-label">Draws (D)</span>
+            <span class="stat-value">${stats.draws}</span>
+          </div>
+          <div class="stat-item losses">
+            <span class="stat-label">Losses (L)</span>
+            <span class="stat-value">${stats.losses}</span>
+          </div>
+        </div>
+      `;
+      
+      const tooltipRect = tooltip.getBoundingClientRect();
+      let left = x + 15;
+      let top = y + 15;
+      
+      if (left + tooltipRect.width > window.innerWidth) {
+        left = x - tooltipRect.width - 15;
+      }
+      
+      if (top + tooltipRect.height > window.innerHeight) {
+        top = y - tooltipRect.height - 15;
+      }
+      
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = top + 'px';
+      tooltip.classList.add('show');
+    }
+
+    function hideTooltip() {
+      const tooltip = document.getElementById('statsTooltip');
+      tooltip.classList.remove('show');
+    }
+
+    function createBracket() {
+      const container = document.getElementById('tournament');
+      let html = '';
+
+      html += '<ul class="round seed">';
+      html += '<li class="spacer">&nbsp;</li>';
+      tournamentData.regions.East.initial.forEach((team, index) => {
+        if (index % 2 === 0) {
+          html += `<li class="game-left game-top" data-region="East" data-round="initial">${createTeamCard(team, 'left')}</li>`;
+        } else {
+          html += `<li class="game-left game-bottom" data-region="East" data-round="initial">${createTeamCard(team, 'left')}</li>`;
+          html += '<li class="spacer">&nbsp;</li>';
+        }
+      });
+      tournamentData.regions.West.initial.forEach((team, index) => {
+        if (index % 2 === 0) {
+          html += `<li class="game-left game-top" data-region="West" data-round="initial">${createTeamCard(team, 'left')}</li>`;
+        } else {
+          html += `<li class="game-left game-bottom" data-region="West" data-round="initial">${createTeamCard(team, 'left')}</li>`;
+          html += '<li class="spacer">&nbsp;</li>';
+        }
+      });
+      html += '</ul>';
+
+      html += '<ul class="round round-1">';
+      html += '<li class="spacer">&nbsp;</li>';
+      const round1Teams = [
+        ...(tournamentData.regions.East.round1 || [null, null, null, null]),
+        ...(tournamentData.regions.West.round1 || [null, null, null, null])
+      ];
+      round1Teams.forEach((teamName, index) => {
+        const teamData = teamName ? findTeamData(teamName) : null;
+        const region = index < 4 ? 'East' : 'West';
+        const content = teamData ? createTeamCard(teamData, 'left', false) : createEmptySlot('left');
+        const emptyClass = teamData ? '' : ' empty-slot';
+        
+        if (index % 2 === 0) {
+          html += `<li class="game-left game-top${emptyClass}" data-region="${region}" data-round="round1" ${teamName ? `data-team-name="${teamName}"` : ''}>${content}</li>`;
+          html += '<li class="game-left spacer">&nbsp;</li>';
+        } else {
+          html += `<li class="game-left game-bottom${emptyClass}" data-region="${region}" data-round="round1" ${teamName ? `data-team-name="${teamName}"` : ''}>${content}</li>`;
+          html += '<li class="spacer">&nbsp;</li>';
+        }
+      });
+      html += '</ul>';
+
+      html += '<ul class="round round-2">';
+      html += '<li class="spacer">&nbsp;</li>';
+      const round2Teams = [
+        ...(tournamentData.regions.East.round2 || [null, null]),
+        ...(tournamentData.regions.West.round2 || [null, null])
+      ];
+      round2Teams.forEach((teamName, index) => {
+        const teamData = teamName ? findTeamData(teamName) : null;
+        const region = index < 2 ? 'East' : 'West';
+        const content = teamData ? createTeamCard(teamData, 'left', false) : createEmptySlot('left');
+        const emptyClass = teamData ? '' : ' empty-slot';
+        
+        if (index % 2 === 0) {
+          html += `<li class="game-left game-top${emptyClass}" data-region="${region}" data-round="round2" ${teamName ? `data-team-name="${teamName}"` : ''}>${content}</li>`;
+          html += '<li class="game-left spacer">&nbsp;</li>';
+        } else {
+          html += `<li class="game-left game-bottom${emptyClass}" data-region="${region}" data-round="round2" ${teamName ? `data-team-name="${teamName}"` : ''}>${content}</li>`;
+          html += '<li class="spacer">&nbsp;</li>';
+        }
+      });
+      html += '</ul>';
+
+      html += '<ul class="round round-4">';
+      html += '<li class="spacer">&nbsp;</li>';
+      if (tournamentData.semifinals.match1 && tournamentData.semifinals.match1.teams) {
+        const leftSemi1 = findTeamData(tournamentData.semifinals.match1.teams[0]);
+        const leftSemi2 = findTeamData(tournamentData.semifinals.match1.teams[1]);
+        html += `<li class="game-left game-top" data-round="semi1" data-team-name="${tournamentData.semifinals.match1.teams[0]}">${createTeamCard(leftSemi1, 'left', false)}</li>`;
+        html += '<li class="game-left spacer">&nbsp;</li>';
+        html += `<li class="game-left game-bottom" data-round="semi1" data-team-name="${tournamentData.semifinals.match1.teams[1]}">${createTeamCard(leftSemi2, 'left', false)}</li>`;
+      } else {
+        html += `<li class="game-left game-top empty-slot" data-round="semi1">${createEmptySlot('left')}</li>`;
+        html += '<li class="game-left spacer">&nbsp;</li>';
+        html += `<li class="game-left game-bottom empty-slot" data-round="semi1">${createEmptySlot('left')}</li>`;
+      }
+      html += '<li class="spacer">&nbsp;</li>';
+      html += '</ul>';
+
+      html += '<ul class="round semi-final">';
+      html += '<li class="spacer">&nbsp;</li>';
+      if (tournamentData.semifinals.match1 && tournamentData.semifinals.match1.winner) {
+        const finalLeft = findTeamData(tournamentData.semifinals.match1.winner);
+        html += `<li class="game-left game-top" data-round="final-left" data-team-name="${tournamentData.semifinals.match1.winner}">${createTeamCard(finalLeft, 'left', false)}</li>`;
+      } else {
+        html += `<li class="game-left game-top empty-slot" data-round="final-left">${createEmptySlot('left')}</li>`;
+      }
+      html += '<li class="spacer">&nbsp;</li>';
+      html += '</ul>';
+
+      html += '<ul class="round finals">';
+      html += '<li class="spacer">&nbsp;</li>';
+      if (tournamentData.finals.champion) {
+        const champion = tournamentData.finals.champion;
+        html += `<li class="game final" data-round="champion" data-team-name="${champion.team}">
+          <div class="champion-card" data-team="${champion.team}">
+            <div style="font-size: 2em;">🏆</div>
+            <img src="https://flagcdn.com/w40/${champion.country}.png" alt="${champion.country}">
+            <span class="team-name">${champion.team}</span>
+            <span class="robot-name">${champion.robot}</span>
+            <span class="robot-code">${champion.code}</span>
+          </div>
+        </li>`;
+      } else {
+        html += `<li class="game final empty-slot" data-round="champion">${createEmptySlot('left')}</li>`;
+      }
+      html += '<li class="spacer">&nbsp;</li>';
+      html += '</ul>';
+
+      html += '<ul class="round semi-final">';
+      html += '<li class="spacer">&nbsp;</li>';
+      if (tournamentData.semifinals.match2 && tournamentData.semifinals.match2.winner) {
+        const finalRight = findTeamData(tournamentData.semifinals.match2.winner);
+        html += `<li class="game-right game-top" data-round="final-right" data-team-name="${tournamentData.semifinals.match2.winner}">${createTeamCard(finalRight, 'right', false)}</li>`;
+      } else {
+        html += `<li class="game-right game-top empty-slot" data-round="final-right">${createEmptySlot('right')}</li>`;
+      }
+      html += '<li class="spacer">&nbsp;</li>';
+      html += '</ul>';
+
+      html += '<ul class="round round-4">';
+      html += '<li class="spacer">&nbsp;</li>';
+      if (tournamentData.semifinals.match2 && tournamentData.semifinals.match2.teams) {
+        const rightSemi1 = findTeamData(tournamentData.semifinals.match2.teams[0]);
+        const rightSemi2 = findTeamData(tournamentData.semifinals.match2.teams[1]);
+        html += `<li class="game-right game-top" data-round="semi2" data-team-name="${tournamentData.semifinals.match2.teams[0]}">${createTeamCard(rightSemi1, 'right', false)}</li>`;
+        html += '<li class="game-right spacer">&nbsp;</li>';
+        html += `<li class="game-right game-bottom" data-round="semi2" data-team-name="${tournamentData.semifinals.match2.teams[1]}">${createTeamCard(rightSemi2, 'right', false)}</li>`;
+      } else {
+        html += `<li class="game-right game-top empty-slot" data-round="semi2">${createEmptySlot('right')}</li>`;
+        html += '<li class="game-right spacer">&nbsp;</li>';
+        html += `<li class="game-right game-bottom empty-slot" data-round="semi2">${createEmptySlot('right')}</li>`;
+      }
+      html += '<li class="spacer">&nbsp;</li>';
+      html += '</ul>';
+
+      html += '<ul class="round round-2">';
+      html += '<li class="spacer">&nbsp;</li>';
+      const round2TeamsRight = [
+        ...(tournamentData.regions.Midwest.round2 || [null, null]),
+        ...(tournamentData.regions.South.round2 || [null, null])
+      ];
+      round2TeamsRight.forEach((teamName, index) => {
+        const teamData = teamName ? findTeamData(teamName) : null;
+        const region = index < 2 ? 'Midwest' : 'South';
+        const content = teamData ? createTeamCard(teamData, 'right', false) : createEmptySlot('right');
+        const emptyClass = teamData ? '' : ' empty-slot';
+        
+        if (index % 2 === 0) {
+          html += `<li class="game-right game-top${emptyClass}" data-region="${region}" data-round="round2" ${teamName ? `data-team-name="${teamName}"` : ''}>${content}</li>`;
+          html += '<li class="game-right spacer">&nbsp;</li>';
+        } else {
+          html += `<li class="game-right game-bottom${emptyClass}" data-region="${region}" data-round="round2" ${teamName ? `data-team-name="${teamName}"` : ''}>${content}</li>`;
+          html += '<li class="spacer">&nbsp;</li>';
+        }
+      });
+      html += '</ul>';
+
+      html += '<ul class="round round-1">';
+      html += '<li class="spacer">&nbsp;</li>';
+      const round1TeamsRight = [
+        ...(tournamentData.regions.Midwest.round1 || [null, null, null, null]),
+        ...(tournamentData.regions.South.round1 || [null, null, null, null])
+      ];
+      round1TeamsRight.forEach((teamName, index) => {
+        const teamData = teamName ? findTeamData(teamName) : null;
+        const region = index < 4 ? 'Midwest' : 'South';
+        const content = teamData ? createTeamCard(teamData, 'right', false) : createEmptySlot('right');
+        const emptyClass = teamData ? '' : ' empty-slot';
+        
+        if (index % 2 === 0) {
+          html += `<li class="game-right game-top${emptyClass}" data-region="${region}" data-round="round1" ${teamName ? `data-team-name="${teamName}"` : ''}>${content}</li>`;
+          html += '<li class="game-right spacer">&nbsp;</li>';
+        } else {
+          html += `<li class="game-right game-bottom${emptyClass}" data-region="${region}" data-round="round1" ${teamName ? `data-team-name="${teamName}"` : ''}>${content}</li>`;
+          html += '<li class="spacer">&nbsp;</li>';
+        }
+      });
+      html += '</ul>';
+
+      html += '<ul class="round seed">';
+      html += '<li class="spacer">&nbsp;</li>';
+      tournamentData.regions.Midwest.initial.forEach((team, index) => {
+        if (index % 2 === 0) {
+          html += `<li class="game-right game-top" data-region="Midwest" data-round="initial">${createTeamCard(team, 'right')}</li>`;
+        } else {
+          html += `<li class="game-right game-bottom" data-region="Midwest" data-round="initial">${createTeamCard(team, 'right')}</li>`;
+          html += '<li class="spacer">&nbsp;</li>';
+        }
+      });
+      tournamentData.regions.South.initial.forEach((team, index) => {
+        if (index % 2 === 0) {
+          html += `<li class="game-right game-top" data-region="South" data-round="initial">${createTeamCard(team, 'right')}</li>`;
+        } else {
+          html += `<li class="game-right game-bottom" data-region="South" data-round="initial">${createTeamCard(team, 'right')}</li>`;
+          html += '<li class="spacer">&nbsp;</li>';
+        }
+      });
+      html += '</ul>';
+
+      container.innerHTML = html;
+
+      document.querySelectorAll('[data-team]').forEach(card => {
+        const li = card.closest('li');
+        
+        if (!li.classList.contains('empty-slot')) {
+          card.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const teamName = card.getAttribute('data-team');
+            highlightPath(teamName);
+          });
+
+          li.addEventListener('mouseenter', (e) => {
+            const teamName = card.getAttribute('data-team');
+            const teamData = findTeamData(teamName);
+            if (teamData) {
+              showTooltip(teamData, e.clientX, e.clientY);
+            }
+          });
+
+          li.addEventListener('mousemove', (e) => {
+            const teamName = card.getAttribute('data-team');
+            const teamData = findTeamData(teamName);
+            if (teamData) {
+              showTooltip(teamData, e.clientX, e.clientY);
+            }
+          });
+
+          li.addEventListener('mouseleave', () => {
+            hideTooltip();
+          });
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', createBracket);
+  </script>
+</body>
+</html>
